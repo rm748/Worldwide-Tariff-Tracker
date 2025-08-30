@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">\>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worldwide Tariff Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
+    header { background: #003366; color: white; padding: 15px; text-align: center; }
+    .container { display: flex; }
+    main { flex: 1; padding: 20px; }
+    aside { width: 250px; background: #fff; padding: 15px; border-left: 1px solid #ccc; }
+    h1 { font-size: 1.8em; margin: 0; }
+    .filters { margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #003366; color: white; }
+    .ad { margin: 15px 0; text-align: center; background: #eee; padding: 10px; border: 1px dashed #999; }
+    footer { background: #003366; color: white; text-align: center; padding: 10px; margin-top: 20px; }
+    .up { color: green; font-weight: bold; }
+    .down { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Worldwide Tariff Tracker</h1>
+    <div id="topAd" class="ad">Top Banner Ad</div>
+  </header>
+  <div class="container">
+    <main>
+      <div class="filters">
+        <label>Country:
+          <select id="countryFilter"></select>
+        </label>
+        <label>Product:
+          <select id="productFilter"></select>
+        </label>
+        <label>Date:
+          <input type="date" id="dateFilter">
+        </label>
+        <button onclick="filterData()">Apply Filters</button>
+        <button onclick="exportCSV()">Export CSV</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Product</th>
+            <th>Tariff Rate</th>
+            <th>Date</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody id="tariffTable"></tbody>
+      </table>
+    </main>
+    <aside>
+      <h3>Sponsored</h3>
+      <div id="sideAd" class="ad">Sidebar Ad</div>
+    </aside>
+  </div>
+  <footer>
+    <p>Disclaimer: This tracker provides indicative tariff data for informational purposes only and is not legal advice.</p>
+  </footer>
+  <script>
+    const data = [
+      { country: "USA", product: "Steel", rate: 25, date: "2025-08-01" },
+      { country: "USA", product: "Steel", rate: 20, date: "2025-07-01" },
+      { country: "USA", product: "Cars", rate: 10, date: "2025-08-01" },
+      { country: "China", product: "Electronics", rate: 15, date: "2025-08-01" },
+      { country: "China", product: "Electronics", rate: 18, date: "2025-07-01" },
+      { country: "India", product: "Textiles", rate: 12, date: "2025-08-01" }
+    ];
+
+    const tableBody = document.getElementById("tariffTable");
+    const countryFilter = document.getElementById("countryFilter");
+    const productFilter = document.getElementById("productFilter");
+    const dateFilter = document.getElementById("dateFilter");
+
+    function initFilters() {
+      const countries = [...new Set(data.map(d => d.country))];
+      countries.forEach(c => countryFilter.innerHTML += `<option value="${c}">${c}</option>`);
+      const products = [...new Set(data.map(d => d.product))];
+      products.forEach(p => productFilter.innerHTML += `<option value="${p}">${p}</option>`);
+    }
+
+    function filterData() {
+      const country = countryFilter.value;
+      const product = productFilter.value;
+      const date = dateFilter.value;
+      const filtered = data.filter(d => (!country || d.country===country) && (!product || d.product===product) && (!date || d.date===date));
+      renderTable(filtered);
+    }
+
+    function renderTable(rows) {
+      tableBody.innerHTML = "";
+      rows.forEach(d => {
+        let prev = data.find(x => x.country===d.country && x.product===d.product && x.date < d.date);
+        let change = "";
+        if (prev) {
+          if (d.rate > prev.rate) change = `<span class='up'>▲ +${d.rate - prev.rate}</span>`;
+          if (d.rate < prev.rate) change = `<span class='down'>▼ ${d.rate - prev.rate}</span>`;
+        }
+        tableBody.innerHTML += `<tr><td>${d.country}</td><td>${d.product}</td><td>${d.rate}%</td><td>${d.date}</td><td>${change}</td></tr>`;
+      });
+    }
+
+    function exportCSV() {
+      let csv = "Country,Product,Tariff Rate,Date\n";
+      [...tableBody.rows].forEach(r => {
+        csv += [...r.cells].map(c => c.innerText).join(",") + "\n";
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = "tariffs.csv";
+      a.click();
+    }
+
+    initFilters();
+    renderTable(data);
+  </script>
+</body>
+</html>
